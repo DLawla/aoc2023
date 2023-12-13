@@ -1,4 +1,4 @@
-file = File.open("X/input.txt")
+file = File.open("X/test.txt")
 contents = file.read
 
 lines = contents.split("\n")
