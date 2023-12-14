@@ -1,4 +1,4 @@
-file = File.open("6/test.txt")
+file = File.open("6/input.txt")
 contents = file.read
 
 lines = contents.split("\n")
@@ -31,12 +31,4 @@ results = races.map do |time, distance|
 end
 
 print results
-
-
-
-# stuff = lines.map do |line|
-#   _ = line.chars.select { |char| char =~ /\d/ }
-#   ...
-# end
-
-# puts all_numbers.sum
+print results.reduce(&:*)
