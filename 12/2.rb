@@ -1,4 +1,5 @@
 # total refactor, and direct conversion of python code (2.py) copied from reddit
+# # Copy from: https://www.reddit.com/r/adventofcode/comments/18ge41g/comment/kd221yp/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
 @cache = {}
 
 def recurse(lava, springs, result = 0)
