@@ -37,7 +37,5 @@ data.each do |lava, springs|
   springs = springs.split(",").map(&:to_i)
   p1 += recurse(lava, springs)
   p2 += recurse(([lava] * 5).join('?'), springs * 5)
-  print "."
 end
-
 puts "#{p1} #{p2}"
