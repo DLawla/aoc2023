@@ -1,4 +1,4 @@
-file = File.open("13/test.txt")
+file = File.open("13/input.txt")
 contents = file.read
 
 def create_2d_array(input_array)
