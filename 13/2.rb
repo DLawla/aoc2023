@@ -98,11 +98,9 @@ results = maps.map.with_index do |map, i|
     end
     break if new_result
   end
-  print '.'
   new_result
 end
 
-puts results
 puts results.sum
 
 # test should == (5 columns, 4 rows) 405
