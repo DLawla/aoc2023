@@ -59,30 +59,8 @@ def rotate_array_90(times, array)
   array
 end
 
-directions = [:north, :east, :south, :west]
-direction = :north
-case direction
-when :north
-  result = evaluate(rows.transpose)
-  rows = result.transpose
-when :east
-  # result = evaluate(rotate_array_90(3, rows))
-  # rows = rotate_array_90(1, result)
-  result = evaluate(rows)
-  rows = result
-when :south
-  # rotate array 180 degrees
-  # rows = rows.map(&:reverse).revese
-  # result = evaluate(rows)
-  # rows = result.map(&:reverse).revese
-when :west
-  # friendly_print(rows.map(&:reverse))
-  # result = evaluate(rows.map(&:reverse))
-  # friendly_print(result)
-  # rows = result.map(&:reverse)
-end
-
-# transpose.map(&:reverse) rotate 90 degrees clockwise
+result = evaluate(rows.transpose)
+rows = result.transpose
 
 values = rows.map.with_index do |row, i|
   value = rows.first.length - i
@@ -90,6 +68,4 @@ values = rows.map.with_index do |row, i|
 end
 
 puts rows.map(&:join).join("\n")
-
-# puts values
 puts values.sum
