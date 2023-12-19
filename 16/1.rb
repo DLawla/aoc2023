@@ -1,6 +1,6 @@
 require "ostruct"
 
-file = File.open("16/test.txt")
+file = File.open("16/input.txt")
 contents = file.read
 
 # Build map
@@ -8,9 +8,11 @@ lines = contents.split("\n")
 MAP = {}
 lines.reverse.map.with_index do |row, y_index|
   row.chars.map.with_index do |symbol, x_index|
-    MAP["#{x_index},#{y_index}"] = OpenStruct.new(x: x_index, y: y_index, symbol:, visited: false)
+    MAP["#{x_index},#{y_index}"] = OpenStruct.new(x: x_index, y: y_index, symbol:, visited_from: [])
   end
 end.flatten
+WIDTH = MAP.values.max_by(&:x).x + 1
+HEIGHT = MAP.values.max_by(&:y).y + 1
 
 class Wanderer
   attr_accessor :current_location, :direction
@@ -18,24 +20,22 @@ class Wanderer
   def initialize(starting_location, direction)
     @current_location = starting_location
     @direction = direction
-    @width = MAP.values.max_by(&:x).x + 1
-    @height = MAP.values.max_by(&:y).y + 1
   end
 
-  def go(direction)
-    if MAP["#{@current_location.x},#{@current_location.y}"].visited
+  def go
+    if MAP["#{@current_location.x},#{@current_location.y}"].visited_from.include?(@direction)
       return
     else
-      MAP["#{@current_location.x},#{@current_location.y}"].visited = true
+      MAP["#{@current_location.x},#{@current_location.y}"].visited_from << @direction
     end
 
     case @current_location.symbol
     when "."
-      return unless (next_location = location_to_the(direction))
+      return unless (next_location = location_to_the(@direction))
       [Wanderer.new(next_location, @direction)]
     when "-"
       if [:east, :west].include?(@direction)
-        return unless (next_location = location_to_the(direction))
+        return unless (next_location = location_to_the(@direction))
         [Wanderer.new(next_location, @direction)]
       else
         eastward = ((next_location = location_to_the(:east)) ? Wanderer.new(next_location, :east) : nil )
@@ -44,7 +44,7 @@ class Wanderer
       end
     when "|"
       if [:north, :south].include?(@direction)
-        return unless (next_location = location_to_the(direction))
+        return unless (next_location = location_to_the(@direction))
         [Wanderer.new(next_location, @direction)]
       else
         northward = ((next_location = location_to_the(:north)) ? Wanderer.new(next_location, :north) : nil )
@@ -102,9 +102,9 @@ class Wanderer
   def hit_boundary?(direction)
     case direction
     when :north
-      current_location.y == @height - 1
+      current_location.y == HEIGHT - 1
     when :east
-      current_location.x == @width - 1
+      current_location.x == WIDTH - 1
     when :south
       current_location.y == 0
     when :west
@@ -114,19 +114,24 @@ class Wanderer
 end
 
 # start
-# Start
 starting_location = "0,#{MAP.values.max_by(&:y).y}"
 wanderers = [Wanderer.new(MAP[starting_location], :east)]
 
+i = 0
 while wanderers.any?
   wanderer, *wanderers = wanderers
 
-  wanderers << wanderer.go(wanderer.direction)
+  wanderers << wanderer.go
 
   wanderers = wanderers.compact.flatten
+
+  i += 1
+
+  if i % 100
+    print '.'
+  end
 end
 
-MAP.select { |_l, v| v.visited }.count
 
 width = MAP.values.max_by(&:x).x + 1
 height = MAP.values.max_by(&:y).y + 1
@@ -134,11 +139,15 @@ height = MAP.values.max_by(&:y).y + 1
 results = (0..height - 1).map do |y|
   (0..(width - 1)).map.with_index do |x|
     location = MAP["#{x},#{y}"]
-    if location.visited
+    if location.visited_from.any?
       "#"
     else
       location.symbol
     end
   end.join
 end
+puts ""
 puts results.reverse.join("\n")
+
+puts MAP.select { |_l, v| v.visited_from.any? }.count
+
