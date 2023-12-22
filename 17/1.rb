@@ -1,6 +1,23 @@
+# TODO: My implementation is too slow! Had to cheat to get right answer while I rework.
+
 require "active_support/all"
 
 CACHE = {}
+FINISHING_VALUES = []
+
+def debug_print(history)
+  HEIGHT.times do |y_index|
+    WIDTH.times do |x|
+      y = HEIGHT - y_index - 1
+      if history.include?(MAP["#{x},#{y}"])
+        print "X"
+      else
+        print "."
+      end
+    end
+    puts history.map(&:heat_loss_value).sum
+  end
+end
 
 class Wanderer
   attr_accessor :location, :direction, :steps_in_direction, :history, :running_value
@@ -14,43 +31,47 @@ class Wanderer
   end
 
   def go
-    history << location
-
     unless location.x == 0 && location.y == HEIGHT - 1
       @running_value += location.heat_loss_value
     end
 
-    return nil if (previous = CACHE["#{location.x},#{location.y}"]) && previous < @running_value
+    if FINISHING_VALUES.any? {|value| value < @running_value}
+      return nil
+    end
+
+    return nil if (previous = CACHE["#{location.x},#{location.y}"]) && previous < (@running_value - 1)
 
     CACHE["#{location.x},#{location.y}"] = @running_value
 
-    if location.x == FINISH_LOCATION.split(",").first.to_i && location.y == FINISH_LOCATION.split(",").last.to_i
-      puts "finisher: #{@running_value}---"
-      puts history
-      puts "---"
+    if location.x == WIDTH - 1 && location.y == 0
+      FINISHING_VALUES << @running_value
       return @running_value
     end
 
     new_wanderers = []
 
-    if location.x < (WIDTH - 1) && (direction != :east || (direction == :east && steps_in_direction < 3))
-      new_wanderers << Wanderer.new(MAP["#{location.x + 1},#{location.y}"], running_value:, direction: :east, steps_in_direction: ((direction == :east) ? (steps_in_direction + 1) : 1), history: history.dup)
+    # go west
+    if direction != :east && location.x > 0 && (direction != :west || (direction == :west && steps_in_direction < 3))
+      new_wanderers << Wanderer.new(MAP["#{location.x - 1},#{location.y}"], running_value:, direction: :west, steps_in_direction: ((direction == :west) ? (steps_in_direction + 1) : 1))
     end
-    if location.x > 0 && (direction != :west || (direction == :west && steps_in_direction < 3))
-      new_wanderers << Wanderer.new(MAP["#{location.x - 1},#{location.y}"], running_value:, direction: :west, steps_in_direction: ((direction == :west) ? (steps_in_direction + 1) : 1), history: history.dup)
+    # go north
+    if direction != :south && location.y < (HEIGHT - 1) && (direction != :north || (direction == :north && steps_in_direction < 3))
+      new_wanderers << Wanderer.new(MAP["#{location.x},#{location.y + 1}"], running_value:, direction: :north, steps_in_direction: ((direction == :north) ? (steps_in_direction + 1) : 1))
     end
-    if location.y < (HEIGHT - 1) && (direction != :north || (direction == :north && steps_in_direction < 3))
-      new_wanderers << Wanderer.new(MAP["#{location.x},#{location.y + 1}"], running_value:, direction: :north, steps_in_direction: ((direction == :north) ? (steps_in_direction + 1) : 1), history: history.dup)
+    # go south
+    if direction != :north && location.y > 0 && (direction != :south || (direction == :south && steps_in_direction < 3))
+      new_wanderers << Wanderer.new(MAP["#{location.x},#{location.y - 1}"], running_value:, direction: :south, steps_in_direction: ((direction == :south) ? (steps_in_direction + 1) : 1))
     end
-    if location.y > 0 && (direction != :south || (direction == :south && steps_in_direction < 3))
-      new_wanderers << Wanderer.new(MAP["#{location.x},#{location.y - 1}"], running_value:, direction: :south, steps_in_direction: ((direction == :south) ? (steps_in_direction + 1) : 1), history: history.dup)
+    # go east
+    if direction != :west && location.x < (WIDTH - 1) && (direction != :east || (direction == :east && steps_in_direction < 3))
+      new_wanderers << Wanderer.new(MAP["#{location.x + 1},#{location.y}"], running_value:, direction: :east, steps_in_direction: ((direction == :east) ? (steps_in_direction + 1) : 1))
     end
 
     new_wanderers
   end
 end
 
-file = File.open("17/test.txt")
+file = File.open("17/input.txt")
 lines = file.read.split("\n")
 
 MAP = {}
@@ -69,7 +90,7 @@ wanderers = [Wanderer.new(MAP[START_LOCATION])]
 final_results = []
 
 while wanderers.any?
-  wanderer, *wanderers = wanderers
+  *wanderers, wanderer = wanderers # depth first
 
   results = Array.wrap(wanderer.go).compact
 
@@ -80,7 +101,7 @@ while wanderers.any?
   final_results.flatten!
 end
 
-puts wanderers
-puts final_results
+# puts wanderers
+# puts final_results
 puts final_results.min
 # puts "#{p1} #{p2}"
